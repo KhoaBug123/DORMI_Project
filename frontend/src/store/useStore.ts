@@ -1,0 +1,176 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export type Role = 'Guest' | 'Tenant' | 'Landlord' | 'Admin';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  avatar?: string;
+}
+
+export interface Listing {
+  id: string;
+  title: string;
+  price: number;
+  address: string;
+  image: string;
+  type: string;
+  trustScore: number;
+  landlordId: string;
+  status: 'Available' | 'Rented';
+  views: number;
+  leads: number;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface RoommateProfile {
+  id: number;
+  name: string;
+  age: number;
+  major: string;
+  image: string;
+  matchScore: number;
+  budget: string;
+  bio: string;
+  tags: string[];
+}
+
+interface AppState {
+  currentUser: User | null;
+  listings: Listing[];
+  messages: Message[];
+  likedRoommates: RoommateProfile[];
+  login: (role: Role, email: string) => void;
+  logout: () => void;
+  addListing: (listing: Omit<Listing, 'id' | 'landlordId'>) => void;
+  updateListing: (id: string, updates: Partial<Listing>) => void;
+  sendMessage: (receiverId: string, text: string) => void;
+  updateUser: (updates: Partial<User>) => void;
+  addLikedRoommate: (profile: RoommateProfile) => void;
+}
+
+const mockListings: Listing[] = [
+  {
+    id: 'l1',
+    title: 'Premium Modern Studio - District 3',
+    price: 5500000,
+    address: '123 Nguyen Dinh Chieu, D3',
+    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80',
+    type: 'Studio',
+    trustScore: 98,
+    landlordId: 'u2',
+    status: 'Available',
+    views: 1240,
+    leads: 42
+  },
+  {
+    id: 'l2',
+    title: 'Cozy Room in Shared House - D7',
+    price: 4200000,
+    address: '45 Nguyen Van Linh, D7',
+    image: 'https://images.unsplash.com/photo-1502672260266-1c1de2d96674?auto=format&fit=crop&w=400&q=80',
+    type: 'Private Room',
+    trustScore: 85,
+    landlordId: 'u2',
+    status: 'Available',
+    views: 842,
+    leads: 28
+  },
+  {
+    id: 'l3',
+    title: 'Luxury 1BR Apartment - Thao Dien',
+    price: 8500000,
+    address: '12 Quoc Huong, D2',
+    image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=400&q=80',
+    type: 'Apartment',
+    trustScore: 95,
+    landlordId: 'u2',
+    status: 'Rented',
+    views: 2150,
+    leads: 120
+  },
+  {
+    id: 'l4',
+    title: 'Affordable Dorm Bed - Go Vap',
+    price: 1500000,
+    address: '89 Phan Van Tri, Go Vap',
+    image: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80',
+    type: 'Shared Room',
+    trustScore: 70,
+    landlordId: 'u2',
+    status: 'Available',
+    views: 320,
+    leads: 5
+  }
+];
+
+const mockMessages: Message[] = [
+  { id: 'm1', senderId: 'u1', receiverId: 'u2', text: 'Hi, I am interested in the Studio in District 3. Is it still available for viewing tomorrow?', timestamp: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'm2', senderId: 'u2', receiverId: 'u1', text: 'Hello! Yes, the room is still available. I can show you around tomorrow at 2 PM. Does that work for you?', timestamp: new Date(Date.now() - 3500000).toISOString() }
+];
+
+export const useStore = create<AppState>()(
+  persist(
+    (set) => ({
+      currentUser: null,
+      listings: mockListings,
+      messages: mockMessages,
+      likedRoommates: [],
+      login: (role, email) => set({
+        currentUser: {
+          id: role === 'Landlord' ? 'u2' : (role === 'Admin' ? 'u3' : 'u1'),
+          name: role === 'Landlord' ? 'Le Van B' : (role === 'Admin' ? 'System Admin' : 'Alex Nguyen'),
+          email,
+          role,
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
+        }
+      }),
+      logout: () => set({ currentUser: null }),
+      addListing: (listing) => set((state) => ({
+        listings: [
+          ...state.listings, 
+          { 
+            ...listing, 
+            id: Math.random().toString(36).substr(2, 9),
+            landlordId: state.currentUser?.id || 'u2'
+          }
+        ]
+      })),
+      updateListing: (id, updates) => set((state) => ({
+        listings: state.listings.map(l => l.id === id ? { ...l, ...updates } : l)
+      })),
+      sendMessage: (receiverId, text) => set((state) => {
+        if (!state.currentUser) return state;
+        const newMessage: Message = {
+          id: Math.random().toString(36).substr(2, 9),
+          senderId: state.currentUser.id,
+          receiverId,
+          text,
+          timestamp: new Date().toISOString()
+        };
+        return { messages: [...state.messages, newMessage] };
+      }),
+      updateUser: (updates) => set((state) => ({
+        currentUser: state.currentUser ? { ...state.currentUser, ...updates } : null
+      })),
+      addLikedRoommate: (profile) => set((state) => ({
+        likedRoommates: state.likedRoommates.find(r => r.id === profile.id) 
+          ? state.likedRoommates 
+          : [...state.likedRoommates, profile]
+      }))
+    }),
+    {
+      name: 'dormi-storage'
+    }
+  )
+);
