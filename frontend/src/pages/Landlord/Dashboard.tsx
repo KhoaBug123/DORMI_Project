@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useLandlordStore } from '../../store/useLandlordStore';
-import { Home, Eye, Users, CalendarCheck, Plus, TrendingUp, Star, ShieldCheck } from 'lucide-react';
+import { Home, Eye, Users, CalendarCheck, Plus, TrendingUp } from 'lucide-react';
 import { mockLandlordDashboardStats, mockRooms, mockTenantMatches } from '../../data/mockData';
 
 export default function LandlordDashboard() {
@@ -104,11 +104,7 @@ export default function LandlordDashboard() {
                       <img src={room.images[0]} alt={room.title} className="w-16 h-16 rounded-xl object-cover border border-border" />
                       <div>
                         <p className="font-bold text-text-primary text-sm mb-1">{room.title}</p>
-                        <p className="text-xs text-text-muted flex items-center gap-1 mb-1">{room.address}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-warning flex items-center gap-1"><Star className="w-3 h-3" fill="currentColor" /> {(room.trustScore / 20).toFixed(1)}</span>
-                          {room.isVerified && <span className="text-xs font-bold text-success flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Đã xác thực</span>}
-                        </div>
+                        <p className="text-xs text-text-muted flex items-center gap-1">{room.address}</p>
                       </div>
                     </div>
                   </td>
