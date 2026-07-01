@@ -34,15 +34,15 @@ export interface Message {
 }
 
 export interface RoommateProfile {
-  id: number;
+  id: string;
   name: string;
   age: number;
-  major: string;
+  major?: string;
   image: string;
   matchScore: number;
-  budget: string;
-  bio: string;
-  tags: string[];
+  budget?: string;
+  bio?: string;
+  tags?: string[];
 }
 
 interface AppState {
@@ -54,7 +54,7 @@ interface AppState {
   logout: () => void;
   addListing: (listing: Omit<Listing, 'id' | 'landlordId'>) => void;
   updateListing: (id: string, updates: Partial<Listing>) => void;
-  sendMessage: (receiverId: string, text: string) => void;
+  sendMessage: (senderId: string, receiverId: string, text: string) => void;
   updateUser: (updates: Partial<User>) => void;
   addLikedRoommate: (profile: RoommateProfile) => void;
 }
@@ -115,8 +115,8 @@ const mockListings: Listing[] = [
 ];
 
 const mockMessages: Message[] = [
-  { id: 'm1', senderId: 'u1', receiverId: 'u2', text: 'Hi, I am interested in the Studio in District 3. Is it still available for viewing tomorrow?', timestamp: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'm2', senderId: 'u2', receiverId: 'u1', text: 'Hello! Yes, the room is still available. I can show you around tomorrow at 2 PM. Does that work for you?', timestamp: new Date(Date.now() - 3500000).toISOString() }
+  { id: 'm1', senderId: 'tenant-001', receiverId: 'landlord-001', text: 'Hi, I am interested in the Studio in District 3. Is it still available for viewing tomorrow?', timestamp: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'm2', senderId: 'landlord-001', receiverId: 'tenant-001', text: 'Hello! Yes, the room is still available. I can show you around tomorrow at 2 PM. Does that work for you?', timestamp: new Date(Date.now() - 3500000).toISOString() }
 ];
 
 export const useStore = create<AppState>()(
@@ -149,11 +149,10 @@ export const useStore = create<AppState>()(
       updateListing: (id, updates) => set((state) => ({
         listings: state.listings.map(l => l.id === id ? { ...l, ...updates } : l)
       })),
-      sendMessage: (receiverId, text) => set((state) => {
-        if (!state.currentUser) return state;
+      sendMessage: (senderId, receiverId, text) => set((state) => {
         const newMessage: Message = {
           id: Math.random().toString(36).substr(2, 9),
-          senderId: state.currentUser.id,
+          senderId: senderId,
           receiverId,
           text,
           timestamp: new Date().toISOString()

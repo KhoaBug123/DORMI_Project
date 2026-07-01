@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLandlordStore } from '../../store/useLandlordStore';
-import { mockLandlordDashboardStats, mockRooms } from '../../data/mockData';
 import { Home, Eye, Users, CalendarCheck, Plus, TrendingUp, Star, ShieldCheck } from 'lucide-react';
+import { mockLandlordDashboardStats, mockRooms, mockTenantMatches } from '../../data/mockData';
 
 export default function LandlordDashboard() {
   const { myRooms } = useLandlordStore();
@@ -59,8 +59,8 @@ export default function LandlordDashboard() {
               <Users className="w-6 h-6" />
             </div>
           </div>
-          <p className="text-sm font-medium text-text-secondary mb-1">Khách tiềm năng (Leads)</p>
-          <p className="text-3xl font-black text-text-primary">{mockLandlordDashboardStats.savedByUsers}</p>
+          <p className="text-sm font-medium text-text-secondary mb-1">Gợi ý khách thuê phù hợp</p>
+          <p className="text-3xl font-black text-text-primary">{mockTenantMatches.length}</p>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-border">
@@ -106,7 +106,7 @@ export default function LandlordDashboard() {
                         <p className="font-bold text-text-primary text-sm mb-1">{room.title}</p>
                         <p className="text-xs text-text-muted flex items-center gap-1 mb-1">{room.address}</p>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-warning flex items-center gap-1"><Star className="w-3 h-3" fill="currentColor" /> {room.trustScore}</span>
+                          <span className="text-xs font-bold text-warning flex items-center gap-1"><Star className="w-3 h-3" fill="currentColor" /> {(room.trustScore / 20).toFixed(1)}</span>
                           {room.isVerified && <span className="text-xs font-bold text-success flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Đã xác thực</span>}
                         </div>
                       </div>

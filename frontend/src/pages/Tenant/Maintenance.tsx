@@ -10,10 +10,17 @@ export default function TenantMaintenance() {
 
   const [showModal, setShowModal] = useState(false);
   const [issue, setIssue] = useState('');
+  const [selectedRoom, setSelectedRoom] = useState('Phòng 101 - Landmark 81');
+
+  const myRooms = [
+    'Phòng 101 - Landmark 81',
+    'Phòng 202 - Vinhomes Central Park',
+    'Căn hộ mini - Quận 5'
+  ];
 
   const handleSubmit = () => {
     if (!issue) return toast.error('Vui lòng nhập mô tả sự cố');
-    setTickets([{ id: `MT-00${tickets.length + 1}`, room: 'Phòng 101 - Landmark 81', issue, status: 'pending', date: new Date().toLocaleDateString('vi-VN'), note: '' }, ...tickets]);
+    setTickets([{ id: `MT-00${tickets.length + 1}`, room: selectedRoom, issue, status: 'pending', date: new Date().toLocaleDateString('vi-VN'), note: '' }, ...tickets]);
     setShowModal(false);
     setIssue('');
     toast.success('Gửi báo cáo sự cố thành công!');
@@ -73,7 +80,19 @@ export default function TenantMaintenance() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-xl relative animate-scale-up">
             <h2 className="text-xl font-bold text-text-primary mb-4">Báo cáo sự cố mới</h2>
+            
             <div className="mb-4">
+              <label className="block text-sm font-bold text-text-secondary mb-1">Phòng gặp sự cố <span className="text-error">*</span></label>
+              <select 
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
+                className="w-full bg-surface-2 border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary mb-4"
+              >
+                {myRooms.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+
               <label className="block text-sm font-bold text-text-secondary mb-1">Mô tả sự cố <span className="text-error">*</span></label>
               <textarea 
                 value={issue} 

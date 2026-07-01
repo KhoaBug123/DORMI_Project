@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { mockRooms } from '../../data/mockData';
-import { ShieldCheck, MapPin, Star, CheckCircle2, Heart, MessageSquare, Calendar, ChevronRight, X, UserPlus, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, MapPin, Star, CheckCircle2, Heart, MessageSquare, Calendar, ChevronRight, X, UserPlus, AlertTriangle, Coffee, Bus, ShoppingBag, Activity } from 'lucide-react';
 import { useTenantStore } from '../../store/useTenantStore';
 import { useLandlordStore } from '../../store/useLandlordStore';
 import { toast } from 'sonner';
@@ -181,6 +181,79 @@ export default function RoomDetail() {
                   <CheckCircle2 className="w-5 h-5 text-primary" /> {a}
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-text-primary mb-4">Quy định phòng</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3">
+              <div className="flex items-center gap-2 text-text-secondary font-medium">
+                <CheckCircle2 className="w-5 h-5 text-warning" /> Giờ giấc tự do
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary font-medium">
+                <CheckCircle2 className="w-5 h-5 text-warning" /> Không nuôi thú cưng
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary font-medium">
+                <CheckCircle2 className="w-5 h-5 text-warning" /> Không tụ tập ồn ào sau 22h
+              </div>
+              <div className="flex items-center gap-2 text-text-secondary font-medium">
+                <CheckCircle2 className="w-5 h-5 text-warning" /> Giữ vệ sinh không gian chung
+              </div>
+            </div>
+          </div>
+
+          {/* Neighborhood Insights */}
+          <div className="mb-8 bg-surface-1 border border-border rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-text-primary mb-4 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-primary" /> Khu vực xung quanh (Neighborhood Insights)
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-4 rounded-xl border border-border shadow-sm flex items-start gap-4">
+                <div className="p-3 bg-success/10 text-success rounded-xl">
+                  <Activity className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-text-primary text-lg">95/100 Walk Score</p>
+                  <p className="text-sm text-text-secondary mt-1">Tuyệt vời! Bạn có thể dễ dàng đi bộ đến hầu hết các tiện ích cơ bản hằng ngày.</p>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-border shadow-sm flex items-start gap-4">
+                <div className="p-3 bg-info/10 text-info rounded-xl">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-text-primary text-lg">An ninh cao</p>
+                  <p className="text-sm text-text-secondary mt-1">Khu dân cư trí thức, có dân phòng tuần tra ban đêm, rất ít xảy ra trộm cắp.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-semibold text-text-primary">Tiện ích lân cận (bán kính 1km)</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-border">
+                  <ShoppingBag className="w-5 h-5 text-text-muted" />
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">Winmart+</p>
+                    <p className="text-xs text-text-secondary">Cách 200m</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-border">
+                  <Bus className="w-5 h-5 text-text-muted" />
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">Trạm xe buýt</p>
+                    <p className="text-xs text-text-secondary">Cách 150m</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white px-4 py-3 rounded-xl border border-border">
+                  <Coffee className="w-5 h-5 text-text-muted" />
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">Highlands Coffee</p>
+                    <p className="text-xs text-text-secondary">Cách 400m</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -219,6 +219,16 @@ export default function LandlordRooms() {
                     className="w-full bg-surface-3 border border-border rounded-lg px-4 py-2.5 outline-none focus:border-primary" 
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold mb-2">Link Ảnh 360 độ (Panorama URL)</label>
+                  <input 
+                    type="text" 
+                    value={editingRoom.panoramaUrl || ''}
+                    onChange={(e) => setEditingRoom({ ...editingRoom, panoramaUrl: e.target.value })}
+                    placeholder="https://momento360.com/e/u/..."
+                    className="w-full bg-surface-3 border border-border rounded-lg px-4 py-2.5 outline-none focus:border-primary" 
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-semibold mb-2">Giá thuê (VNĐ/tháng)</label>
                   <input 

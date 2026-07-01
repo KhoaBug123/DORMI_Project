@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { mockAppointments } from '../../data/mockData';
-import { Calendar, CheckCircle2, XCircle, Search, Clock } from 'lucide-react';
+import { Calendar, CheckCircle2, XCircle, Search, Clock, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function LandlordAppointments() {
@@ -8,6 +8,23 @@ export default function LandlordAppointments() {
   const initialAppts = mockAppointments.filter(a => a.landlordId === 'landlord-001');
   const [appointments, setAppointments] = useState(initialAppts);
   const [filter, setFilter] = useState('all');
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewAppt, setReviewAppt] = useState<any>(null);
+  const [rating, setRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+
+  const openReviewModal = (appt: any) => {
+    setReviewAppt(appt);
+    setRating(5);
+    setReviewText('');
+    setShowReviewModal(true);
+  };
+
+  const submitReview = () => {
+    toast.success('Đã gửi đánh giá người thuê thành công!');
+    setShowReviewModal(false);
+  };
 
   const handleUpdateStatus = (id: string, newStatus: string) => {
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: newStatus as any } : a));
@@ -118,8 +135,12 @@ export default function LandlordAppointments() {
                             <XCircle className="w-5 h-5" />
                           </button>
                         </div>
+                      ) : appt.status === 'completed' ? (
+                        <button onClick={() => openReviewModal(appt)} className="px-3 py-1.5 bg-warning/10 text-warning hover:bg-warning hover:text-white rounded-lg transition-colors text-sm font-bold flex items-center gap-1 ml-auto">
+                          <Star className="w-4 h-4" /> Đánh giá
+                        </button>
                       ) : (
-                        <span className="text-sm text-text-muted italic">Đã xử lý</span>
+                        <span className="text-sm text-text-muted italic">Đã hủy</span>
                       )}
                     </td>
                   </tr>
@@ -129,6 +150,61 @@ export default function LandlordAppointments() {
           </table>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && reviewAppt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-fade-in-up">
+            <div className="p-4 border-b border-border flex justify-between items-center bg-surface-1">
+              <h3 className="font-bold text-lg text-text-primary">Đánh giá khách thuê</h3>
+              <button onClick={() => setShowReviewModal(false)} className="text-text-muted hover:text-text-primary p-1">✕</button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4">
+                <img src={reviewAppt.tenantAvatar} className="w-12 h-12 rounded-full border-2 border-surface-2" />
+                <div>
+                  <p className="font-bold text-text-primary">{reviewAppt.tenantName}</p>
+                  <p className="text-sm text-text-secondary">Đã thuê: {reviewAppt.roomTitle}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2">Chất lượng khách thuê</p>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} onClick={() => setRating(star)} className={`p-1 transition-colors ${rating >= star ? 'text-warning' : 'text-surface-3 hover:text-warning/50'}`}>
+                      <Star className="w-8 h-8 fill-current" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold mb-2">Nhận xét chi tiết</p>
+                <textarea
+                  placeholder="Người thuê có giữ gìn vệ sinh chung không? Đóng tiền nhà đúng hạn không?..."
+                  className="w-full bg-surface-2 border border-border rounded-xl p-3 text-sm outline-none focus:border-primary resize-none h-24"
+                  value={reviewText}
+                  onChange={e => setReviewText(e.target.value)}
+                ></textarea>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {['Sạch sẽ', 'Đúng giờ', 'Thân thiện', 'Đóng tiền đúng hạn', 'Tuân thủ nội quy'].map(tag => (
+                  <button key={tag} type="button" className="px-3 py-1.5 rounded-full border border-border text-xs font-semibold text-text-secondary hover:bg-surface-3 transition-colors">
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+
+              <button onClick={submitReview} className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-colors">
+                Gửi đánh giá
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

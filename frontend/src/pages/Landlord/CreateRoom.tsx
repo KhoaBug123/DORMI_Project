@@ -19,13 +19,26 @@ export default function CreateRoom() {
     maxOccupants: '1',
     description: '',
     amenities: [] as string[],
-    images: [] as string[]
+    rules: [] as string[],
+    images: [] as string[],
+    panoramaUrl: ''
   });
 
   const amenitiesList = [
     'Điều hòa', 'Tủ lạnh', 'Máy giặt', 'Nóng lạnh', 'Giường', 
     'Tủ quần áo', 'Bếp', 'Wifi tốc độ cao', 'Chỗ để xe', 'Thang máy',
     'Khóa vân tay', 'Bảo vệ 24/7'
+  ];
+
+  const rulesList = [
+    'Giờ giấc tự do', 'Không nuôi thú cưng', 'Không ồn ào sau 22h', 
+    'Chỉ cho nữ thuê', 'Chỉ cho nam thuê', 'Giữ vệ sinh chung', 'Không hút thuốc'
+  ];
+
+  const hcmcDistricts = [
+    'Quận 1', 'Quận 3', 'Quận 4', 'Quận 5', 'Quận 6', 'Quận 7', 'Quận 8', 'Quận 10', 'Quận 11', 'Quận 12',
+    'Bình Tân', 'Bình Thạnh', 'Gò Vấp', 'Phú Nhuận', 'Tân Bình', 'Tân Phú', 'TP Thủ Đức', 'Huyện Bình Chánh', 
+    'Huyện Cần Giờ', 'Huyện Củ Chi', 'Huyện Hóc Môn', 'Huyện Nhà Bè'
   ];
 
   const handleNext = () => setStep(step + 1);
@@ -37,6 +50,15 @@ export default function CreateRoom() {
       amenities: prev.amenities.includes(item) 
         ? prev.amenities.filter(a => a !== item)
         : [...prev.amenities, item]
+    }));
+  };
+
+  const toggleRule = (item: string) => {
+    setFormData(prev => ({
+      ...prev,
+      rules: prev.rules.includes(item) 
+        ? prev.rules.filter(r => r !== item)
+        : [...prev.rules, item]
     }));
   };
 
@@ -129,10 +151,10 @@ export default function CreateRoom() {
               <div>
                 <label className="block text-sm font-semibold mb-2">Quận / Huyện *</label>
                 <select value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} className="w-full bg-surface-3 border border-border rounded-lg px-4 py-3 outline-none focus:border-primary appearance-none">
-                  <option value="">Chọn Quận</option>
-                  <option value="Quận 10">Quận 10</option>
-                  <option value="Quận 5">Quận 5</option>
-                  <option value="Bình Thạnh">Bình Thạnh</option>
+                  <option value="">Chọn Quận / Huyện</option>
+                  {hcmcDistricts.map(district => (
+                    <option key={district} value={district}>{district}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -188,6 +210,18 @@ export default function CreateRoom() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 pt-6 border-t border-border">
+              <label className="block text-sm font-semibold mb-2">Link Ảnh 360 độ (Panorama URL) - Tùy chọn</label>
+              <input 
+                type="text" 
+                value={formData.panoramaUrl} 
+                onChange={e => setFormData({...formData, panoramaUrl: e.target.value})} 
+                placeholder="Ví dụ: https://momento360.com/e/u/..." 
+                className="w-full bg-surface-3 border border-border rounded-lg px-4 py-3 outline-none focus:border-primary transition-colors" 
+              />
+              <p className="text-xs text-text-muted mt-2">Dán đường dẫn ảnh 360 độ (Panorama) để sinh viên có thể xem phòng chi tiết hơn.</p>
+            </div>
           </div>
         )}
 
@@ -203,6 +237,21 @@ export default function CreateRoom() {
                     key={item}
                     onClick={() => toggleAmenity(item)}
                     className={`px-4 py-2 rounded-full text-sm font-bold border transition-colors ${formData.amenities.includes(item) ? 'bg-primary/10 border-primary text-primary' : 'bg-surface border-border text-text-secondary hover:border-text-muted'}`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-3 mt-6">Quy định phòng</label>
+              <div className="flex flex-wrap gap-3">
+                {rulesList.map(item => (
+                  <button
+                    key={item}
+                    onClick={() => toggleRule(item)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold border transition-colors ${formData.rules.includes(item) ? 'bg-warning/10 border-warning text-warning' : 'bg-surface border-border text-text-secondary hover:border-text-muted'}`}
                   >
                     {item}
                   </button>

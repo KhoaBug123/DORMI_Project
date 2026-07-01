@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { mockRooms, mockUniversities } from '../../data/mockData';
@@ -8,14 +8,33 @@ import { ShieldCheck, MapPin, Filter, Heart } from 'lucide-react';
 import { useTenantStore } from '../../store/useTenantStore';
 
 // Custom Map Icon
-const createCustomIcon = (price: number) => {
+const createCustomIcon = (price: number, isSelected: boolean) => {
   const formattedPrice = (price / 1000000).toFixed(1) + 'tr';
+  const bgColor = isSelected ? 'bg-warning' : 'bg-primary';
   return L.divIcon({
     className: 'custom-map-icon',
-    html: `<div class="bg-primary text-white font-bold text-xs px-2 py-1 rounded-md shadow-md whitespace-nowrap border border-white relative before:absolute before:content-[''] before:-bottom-1.5 before:left-1/2 before:-translate-x-1/2 before:border-t-[6px] before:border-t-primary before:border-x-[5px] before:border-x-transparent before:border-b-0">${formattedPrice}</div>`,
+    html: `<div class="${bgColor} text-white font-bold text-xs px-2 py-1 rounded-md shadow-md whitespace-nowrap border border-white relative before:absolute before:content-[''] before:-bottom-1.5 before:left-1/2 before:-translate-x-1/2 before:border-t-[6px] before:border-t-${isSelected ? 'warning' : 'primary'} before:border-x-[5px] before:border-x-transparent before:border-b-0">${formattedPrice}</div>`,
     iconSize: [40, 24],
     iconAnchor: [20, 30],
   });
+};
+
+const MapUpdater = ({ rooms, selectedRoomId }: { rooms: any[], selectedRoomId: string | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (rooms.length > 0) {
+      if (selectedRoomId) {
+        const room = rooms.find(r => r.id === selectedRoomId);
+        if (room) {
+          map.flyTo([room.lat, room.lng], 15, { duration: 1.5 });
+        }
+      } else {
+        const bounds = L.latLngBounds(rooms.map(r => [r.lat, r.lng]));
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
+      }
+    }
+  }, [rooms, selectedRoomId, map]);
+  return null;
 };
 
 const RoomImageSlider = ({ images, isVerified }: { images: string[], isVerified?: boolean }) => {
@@ -42,8 +61,7 @@ const RoomImageSlider = ({ images, isVerified }: { images: string[], isVerified?
         </div>
       )}
       
-      {/* Navigation Arrows */}
-      <div className="absolute inset-0 flex items-center justify-between p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      <div className="absolute inset-0 flex items-center justify-between p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-auto">
         <button onClick={prevImage} className="w-6 h-6 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-colors">
           &lt;
         </button>
@@ -52,7 +70,6 @@ const RoomImageSlider = ({ images, isVerified }: { images: string[], isVerified?
         </button>
       </div>
 
-      {/* Dots Indicator */}
       <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-10">
         {images.slice(0, 5).map((_, i) => (
           <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentIndex % 5 ? 'w-3 bg-white' : 'w-1.5 bg-white/50'}`} />
@@ -64,23 +81,32 @@ const RoomImageSlider = ({ images, isVerified }: { images: string[], isVerified?
 
 export default function ExploreRooms() {
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const { savedRooms, toggleSaveRoom } = useTenantStore();
   
-  // Filters state
   const [district, setDistrict] = useState('');
   const [university, setUniversity] = useState('');
   
   const filteredRooms = useMemo(() => {
     let result = mockRooms;
     if (district) result = result.filter(r => r.district === district);
+    if (university) {
+      const uni = mockUniversities.find(u => u.id === university);
+      if (uni) {
+        const normalizedUni = uni.name.toLowerCase().replace(/đ/g, 'd');
+        result = result.filter(r => r.nearbyUniversities?.some(nu => 
+          nu.toLowerCase().replace(/đ/g, 'd').includes(normalizedUni)
+        ));
+      }
+    }
     return result;
-  }, [district]);
+  }, [district, university]);
+
+  const mapRooms = selectedRoom ? filteredRooms.filter(r => r.id === selectedRoom) : filteredRooms;
 
   return (
     <div className="flex h-[calc(100vh-64px)] w-full overflow-hidden bg-surface">
-      {/* Panel Trái - Bản Đồ (60%) */}
       <div className="w-[60%] h-full relative border-r border-border flex flex-col">
-        {/* Thanh Lọc Overlay (Sticky top) */}
         <div className="absolute top-4 left-4 right-4 z-[400] bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-border p-3 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 bg-surface-3 px-3 py-1.5 rounded-lg border border-border">
             <Filter className="w-4 h-4 text-text-muted" />
@@ -89,7 +115,7 @@ export default function ExploreRooms() {
           
           <select 
             value={district} 
-            onChange={e => setDistrict(e.target.value)}
+            onChange={e => { setDistrict(e.target.value); setSelectedRoom(null); }}
             className="bg-white border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary min-w-[120px]"
           >
             <option value="">Tất cả Quận/Huyện</option>
@@ -102,7 +128,7 @@ export default function ExploreRooms() {
           
           <select 
             value={university} 
-            onChange={e => setUniversity(e.target.value)}
+            onChange={e => { setUniversity(e.target.value); setSelectedRoom(null); }}
             className="bg-white border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary min-w-[150px]"
           >
             <option value="">Tất cả Trường ĐH</option>
@@ -113,6 +139,14 @@ export default function ExploreRooms() {
 
           <div className="ml-auto flex items-center bg-primary/10 px-3 py-1.5 rounded-lg">
             <span className="text-sm font-bold text-primary">Tìm thấy {filteredRooms.length} phòng</span>
+            {selectedRoom && (
+              <button 
+                onClick={() => setSelectedRoom(null)} 
+                className="ml-3 text-xs bg-white text-text-primary px-2 py-1 rounded shadow-sm border border-border hover:bg-surface-3 transition-colors"
+              >
+                Bỏ chọn
+              </button>
+            )}
           </div>
         </div>
 
@@ -126,15 +160,17 @@ export default function ExploreRooms() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
+          <MapUpdater rooms={mapRooms} selectedRoomId={selectedRoom} />
           
-          {filteredRooms.map(room => (
+          {mapRooms.map(room => (
             <Marker 
               key={room.id} 
               position={[room.lat, room.lng]}
-              icon={createCustomIcon(room.price)}
+              icon={createCustomIcon(room.price, selectedRoom === room.id)}
               eventHandlers={{
                 mouseover: () => setHoveredRoom(room.id),
                 mouseout: () => setHoveredRoom(null),
+                click: () => setSelectedRoom(selectedRoom === room.id ? null : room.id)
               }}
             >
               <Popup className="dormi-popup">
@@ -154,7 +190,6 @@ export default function ExploreRooms() {
         </MapContainer>
       </div>
 
-      {/* Panel Phải - Danh sách phòng (40%) */}
       <div className="w-[40%] h-full overflow-y-auto bg-surface-2 p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg text-text-primary">Danh sách phòng</h2>
@@ -174,13 +209,16 @@ export default function ExploreRooms() {
             filteredRooms.map(room => (
               <div 
                 key={room.id} 
-                className={`bg-white rounded-xl shadow-sm border p-3 flex gap-4 transition-all-custom cursor-pointer ${hoveredRoom === room.id ? 'border-primary shadow-md transform -translate-y-1' : 'border-border hover:border-primary/50'}`}
+                className={`bg-white rounded-xl shadow-sm border p-3 flex gap-4 transition-all-custom cursor-pointer ${hoveredRoom === room.id ? 'border-primary shadow-md transform -translate-y-1' : 'border-border hover:border-primary/50'} ${selectedRoom === room.id ? 'ring-2 ring-primary ring-offset-1 bg-warning/5 border-warning/30' : ''}`}
                 onMouseEnter={() => setHoveredRoom(room.id)}
                 onMouseLeave={() => setHoveredRoom(null)}
+                onClick={() => setSelectedRoom(selectedRoom === room.id ? null : room.id)}
               >
-                <RoomImageSlider images={room.images} isVerified={room.isVerified} />
+                <div className="pointer-events-auto">
+                  <RoomImageSlider images={room.images} isVerified={room.isVerified} />
+                </div>
 
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col pointer-events-auto">
                   <h3 className="font-bold text-text-primary text-sm line-clamp-2 leading-tight mb-1">{room.title}</h3>
                   <p className="text-text-muted text-xs flex items-center gap-1 mb-2">
                     <MapPin className="w-3 h-3" /> {room.district}
@@ -200,12 +238,12 @@ export default function ExploreRooms() {
                     </div>
                     <div className="flex gap-2">
                       <button 
-                        onClick={(e) => { e.preventDefault(); toggleSaveRoom(room.id); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleSaveRoom(room.id); }}
                         className="p-1.5 rounded-md hover:bg-surface-3 text-text-muted transition-colors"
                       >
                         <Heart className="w-5 h-5" fill={savedRooms.includes(room.id) ? '#EF4444' : 'none'} color={savedRooms.includes(room.id) ? '#EF4444' : 'currentColor'} />
                       </button>
-                      <Link to={`/tenant/explore/${room.id}`} className="bg-surface-3 hover:bg-primary hover:text-white text-text-primary text-xs font-bold px-3 py-1.5 rounded-md transition-colors flex items-center">
+                      <Link onClick={(e) => e.stopPropagation()} to={`/tenant/explore/${room.id}`} className="bg-surface-3 hover:bg-primary hover:text-white text-text-primary text-xs font-bold px-3 py-1.5 rounded-md transition-colors flex items-center">
                         Xem
                       </Link>
                     </div>

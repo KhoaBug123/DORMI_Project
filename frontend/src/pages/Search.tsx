@@ -5,40 +5,12 @@ import { BentoCard } from '../components/ui/BentoCard';
 import { AppleButton } from '../components/ui/AppleButton';
 import { MapPin, MagnifyingGlass, SlidersHorizontal, X, MagnifyingGlassMinus } from '@phosphor-icons/react';
 
-const rentalRooms = [
-  {
-    id: 1,
-    title: 'Studio sáng, full nội thất',
-    location: 'Quận 1, TP.HCM',
-    price: '5.000.000đ',
-    type: 'Studio',
-    badge: 'Có 3D',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=1200&auto=format&fit=crop',
-  },
-  {
-    id: 2,
-    title: 'Sleepbox sạch, yên tĩnh',
-    location: 'Bình Thạnh, TP.HCM',
-    price: '1.800.000đ',
-    type: 'Ký túc xá',
-    badge: 'Đã KYC',
-    image: 'https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=900&auto=format&fit=crop',
-  },
-  {
-    id: 3,
-    title: 'Phòng ban công thoáng',
-    location: 'Quận 7, TP.HCM',
-    price: '2.500.000đ',
-    type: 'Phòng trọ',
-    badge: 'Gần trường',
-    image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=900&auto=format&fit=crop',
-  },
-];
+import { mockRooms, mockUniversities } from '../data/mockData';
 
 export function Search() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [results, setResults] = useState(rentalRooms);
+  const [results, setResults] = useState(mockRooms);
 
   useEffect(() => {
     setIsLoading(true);
@@ -46,11 +18,14 @@ export function Search() {
       if (searchQuery.trim().toLowerCase() === 'empty') {
         setResults([]);
       } else {
+        const query = searchQuery.toLowerCase().replace(/đ/g, 'd');
         setResults(
-          rentalRooms.filter(r => 
-            r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            r.location.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+          mockRooms.filter(r => {
+            const matchTitle = r.title.toLowerCase().replace(/đ/g, 'd').includes(query);
+            const matchAddress = r.address.toLowerCase().replace(/đ/g, 'd').includes(query);
+            const matchUni = r.nearbyUniversities?.some(nu => nu.toLowerCase().replace(/đ/g, 'd').includes(query));
+            return matchTitle || matchAddress || matchUni;
+          })
         );
       }
       setIsLoading(false);
@@ -140,30 +115,28 @@ export function Search() {
                 <BentoCard key={room.id} noPadding hoverEffect className="bg-white flex flex-col h-[380px] md:h-[420px]">
                   <div className="relative h-[200px] md:h-[220px] w-full shrink-0 overflow-hidden bg-neutral-100">
                     <img 
-                      src={room.image} 
-                      alt={room.title} 
-                      className="h-full w-full object-cover"
+                      src={room.images[0]} 
+                      alt={room.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute left-3 top-3 md:left-4 md:top-4 rounded-full bg-[rgba(255,255,255,0.9)] px-2 md:px-3 py-1 text-[11px] md:text-[12px] font-bold text-foreground shadow-sm backdrop-blur-md">
-                      {room.badge}
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-bold text-gray-900 shadow-sm">
+                      {room.type}
+                    </div>
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-bold text-white shadow-sm flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 text-yellow-400" weight="fill" />
+                      {(room.trustScore / 20).toFixed(1)}
                     </div>
                   </div>
-                  
-                  <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-[11px] md:text-[12px] font-bold uppercase tracking-widest text-neutral-500">{room.type}</p>
-                        <p className="text-[9px] md:text-[10px] text-neutral-400 font-medium italic">(Update: 26.06.2026)</p>
-                      </div>
-                      <h3 className="text-[18px] md:text-[21px] font-semibold text-foreground leading-tight mb-2 line-clamp-2">{room.title}</h3>
-                      <p className="flex items-center gap-1 md:gap-1.5 text-[13px] md:text-[14px] text-neutral-500">
-                        <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                        {room.location}
-                      </p>
+                  <div className="p-4 sm:p-5 flex flex-col flex-1">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-bold text-gray-900 text-[15px] sm:text-base line-clamp-1">{room.title}</h3>
                     </div>
-                    
-                    <div className="flex items-center justify-between pt-3 md:pt-4 mt-3 md:mt-4 border-t border-neutral-200">
-                      <p className="text-[20px] md:text-[24px] font-bold text-foreground tracking-tight">{room.price}</p>
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm mb-4">
+                      <MapPin className="w-4 h-4 shrink-0" />
+                      <span className="line-clamp-1">{room.address}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+                      <span className="font-black text-blue-600 text-lg sm:text-xl">{room.price.toLocaleString('vi-VN')}đ</span>
                       <AppleButton variant="secondary" size="sm">Chi tiết</AppleButton>
                     </div>
                   </div>

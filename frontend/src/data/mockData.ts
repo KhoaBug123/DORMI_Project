@@ -849,3 +849,49 @@ export const mockCredentials = [
   { email: "chutromoi@email.com", password: "123456", role: "landlord", userId: "landlord-003", kycStatus: "pending" },
   { email: "admin@dormi.vn", password: "admin123", role: "admin", userId: "admin-001" },
 ];
+
+// ============ TÌM KIẾM NGƯỜI THUÊ (TENANT DISCOVERY) ============
+export const mockTenantMatches = [
+  {
+    id: "match-001",
+    name: "Trần Thị Hương",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    university: "ĐH Kinh tế HCM",
+    major: "Kế toán",
+    budget: 3500000,
+    preferredDistricts: ["Quận 5", "Quận 3"],
+    moveInDate: "2025-08-01",
+    matchScore: 92,
+    tags: ["Yên tĩnh", "Sạch sẽ", "Không hút thuốc", "Nữ"],
+    lookingFor: "Phòng có bếp riêng, an ninh tốt, gần trạm xe bus.",
+    contacted: false
+  },
+  {
+    id: "match-002",
+    name: "Nguyễn Minh Khoa",
+    avatar: "https://i.pravatar.cc/150?img=52",
+    university: "ĐH Bách Khoa HCM",
+    major: "CNTT",
+    budget: 4000000,
+    preferredDistricts: ["Quận 10", "Quận 3"],
+    moveInDate: "2025-07-15",
+    matchScore: 88,
+    tags: ["Dễ tính", "Ít nấu ăn", "Nam", "Công nghệ"],
+    lookingFor: "Cần chỗ để xe máy an toàn, wifi mạnh, gần trường.",
+    contacted: true
+  },
+  {
+    id: "match-003",
+    name: "Phạm Ngọc Anh",
+    avatar: "https://i.pravatar.cc/150?img=9",
+    university: "ĐH Ngoại Thương",
+    major: "Marketing",
+    budget: 4500000,
+    preferredDistricts: ["Bình Thạnh", "Quận 1"],
+    moveInDate: "2025-08-10",
+    matchScore: 85,
+    tags: ["Ngăn nắp", "Hay nấu ăn", "Nữ"],
+    lookingFor: "Căn hộ mini hoặc phòng có ban công, ánh sáng tự nhiên.",
+    contacted: false
+  }
+];

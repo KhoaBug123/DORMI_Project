@@ -1,25 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/ui/Button';
 import { Hand, Paperclip } from 'lucide-react';
 
 export default function TenantChatCenter() {
-  const { currentUser, messages, sendMessage, likedRoommates } = useStore();
+  const { user } = useAuthStore();
+  const { messages, sendMessage } = useStore();
   const location = useLocation();
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Khởi tạo danh sách liên hệ (contacts) bao gồm Landlord (hardcode) và Roommates đã thích
+  // Khởi tạo danh sách liên hệ (contacts) bao gồm Landlord (hardcode)
   const contacts = [
-    { id: 'u2', name: 'Le Van B', role: 'Landlord', online: true, avatar: '' },
-    ...likedRoommates.map(r => ({
-      id: `r${r.id}`, // prefix 'r' để tránh trùng lặp id nếu có
-      name: r.name,
-      role: 'Roommate',
-      online: false,
-      avatar: r.image
-    }))
+    { id: 'landlord-001', name: 'Nguyễn Văn Phúc', role: 'Landlord', online: true, avatar: 'https://i.pravatar.cc/100?img=11' }
   ];
 
   const initialContactId = location.state?.targetUserId || contacts[0]?.id;
@@ -27,8 +22,8 @@ export default function TenantChatCenter() {
   const selectedContact = contacts.find(c => c.id === selectedContactId) || contacts[0];
 
   const chatMessages = messages.filter(m =>
-    (m.senderId === currentUser?.id && m.receiverId === selectedContact?.id) ||
-    (m.senderId === selectedContact?.id && m.receiverId === currentUser?.id)
+    (m.senderId === user?.id && m.receiverId === selectedContact?.id) ||
+    (m.senderId === selectedContact?.id && m.receiverId === user?.id)
   );
 
   useEffect(() => {
@@ -36,8 +31,8 @@ export default function TenantChatCenter() {
   }, [chatMessages]);
 
   const handleSend = () => {
-    if (!inputText.trim() || !selectedContact) return;
-    sendMessage(selectedContact.id, inputText);
+    if (!inputText.trim() || !selectedContact || !user) return;
+    sendMessage(user.id, selectedContact.id, inputText);
     setInputText('');
   };
 
@@ -64,8 +59,8 @@ export default function TenantChatCenter() {
             const isSelected = contact.id === selectedContactId;
             // Lấy tin nhắn cuối cùng với contact này
             const contactMessages = messages.filter(m =>
-              (m.senderId === currentUser?.id && m.receiverId === contact.id) ||
-              (m.senderId === contact.id && m.receiverId === currentUser?.id)
+              (m.senderId === user?.id && m.receiverId === contact.id) ||
+              (m.senderId === contact.id && m.receiverId === user?.id)
             );
             const lastMessage = contactMessages.length > 0 ? contactMessages[contactMessages.length - 1].text : 'Bắt đầu trò chuyện';
 
@@ -147,7 +142,7 @@ export default function TenantChatCenter() {
               )}
 
               {chatMessages.map(msg => {
-                const isMe = msg.senderId === currentUser?.id;
+                const isMe = msg.senderId === user?.id;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex gap-2 max-w-[70%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -178,7 +173,7 @@ export default function TenantChatCenter() {
               {['Phòng này hiện còn avai không?', 'Giá căn này có thể hỗ trợ giảm không?', 'Có full nt không?'].map((msg, i) => (
                 <button
                   key={i}
-                  onClick={() => sendMessage(selectedContact.id, msg)}
+                  onClick={() => user && sendMessage(user.id, selectedContact.id, msg)}
                   className="whitespace-nowrap px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-full hover:bg-primary-100 transition-colors border border-primary-100"
                 >
                   {msg}
