@@ -86,6 +86,7 @@ export default function ExploreRooms() {
   
   const [district, setDistrict] = useState('');
   const [university, setUniversity] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   
   const filteredRooms = useMemo(() => {
     let result = mockRooms;
@@ -99,8 +100,20 @@ export default function ExploreRooms() {
         ));
       }
     }
+    
+    // Sorting logic
+    if (sortBy === 'price_asc') {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price_desc') {
+      result = [...result].sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'trust_desc') {
+      result = [...result].sort((a, b) => b.trustScore - a.trustScore);
+    } else if (sortBy === 'trust_asc') {
+      result = [...result].sort((a, b) => a.trustScore - b.trustScore);
+    }
+    
     return result;
-  }, [district, university]);
+  }, [district, university, sortBy]);
 
   const mapRooms = selectedRoom ? filteredRooms.filter(r => r.id === selectedRoom) : filteredRooms;
 
@@ -193,10 +206,16 @@ export default function ExploreRooms() {
       <div className="w-[40%] h-full overflow-y-auto bg-surface-2 p-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg text-text-primary">Danh sách phòng</h2>
-          <select className="bg-white border border-border rounded-lg px-2 py-1.5 text-sm outline-none focus:border-primary">
-            <option>Mới nhất</option>
-            <option>Giá thấp đến cao</option>
-            <option>Trust Score cao nhất</option>
+          <select 
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className="bg-white border border-border rounded-lg px-2 py-1.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="newest">Mới nhất</option>
+            <option value="price_asc">Giá thấp đến cao</option>
+            <option value="price_desc">Giá cao đến thấp</option>
+            <option value="trust_desc">Trust Score cao đến thấp</option>
+            <option value="trust_asc">Trust Score thấp đến cao</option>
           </select>
         </div>
 
@@ -224,11 +243,14 @@ export default function ExploreRooms() {
                     <MapPin className="w-3 h-3" /> {room.district}
                   </p>
                   
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <div className="flex-1 h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                  <div className="flex flex-col gap-1 mb-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">Trust Score</span>
+                      <span className="text-xs font-bold text-primary">{room.trustScore}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-primary to-primary-light" style={{ width: `${room.trustScore}%` }}></div>
                     </div>
-                    <span className="text-xs font-bold text-primary">{room.trustScore}</span>
                   </div>
 
                   <div className="flex justify-between items-end mt-auto">

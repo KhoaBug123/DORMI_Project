@@ -9,29 +9,41 @@ import { mockRooms, mockUniversities } from '../data/mockData';
 
 export function Search() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
   const [isLoading, setIsLoading] = useState(true);
   const [results, setResults] = useState(mockRooms);
 
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
-      if (searchQuery.trim().toLowerCase() === 'empty') {
-        setResults([]);
-      } else {
+      let filtered = [...mockRooms];
+      
+      if (searchQuery.trim().toLowerCase() !== 'empty' && searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase().replace(/đ/g, 'd');
-        setResults(
-          mockRooms.filter(r => {
-            const matchTitle = r.title.toLowerCase().replace(/đ/g, 'd').includes(query);
-            const matchAddress = r.address.toLowerCase().replace(/đ/g, 'd').includes(query);
-            const matchUni = r.nearbyUniversities?.some(nu => nu.toLowerCase().replace(/đ/g, 'd').includes(query));
-            return matchTitle || matchAddress || matchUni;
-          })
-        );
+        filtered = mockRooms.filter(r => {
+          const matchTitle = r.title.toLowerCase().replace(/đ/g, 'd').includes(query);
+          const matchAddress = r.address.toLowerCase().replace(/đ/g, 'd').includes(query);
+          const matchUni = r.nearbyUniversities?.some(nu => nu.toLowerCase().replace(/đ/g, 'd').includes(query));
+          return matchTitle || matchAddress || matchUni;
+        });
       }
+
+      // Sorting logic
+      if (sortBy === 'price_asc') {
+        filtered = filtered.sort((a, b) => a.price - b.price);
+      } else if (sortBy === 'price_desc') {
+        filtered = filtered.sort((a, b) => b.price - a.price);
+      } else if (sortBy === 'trust_desc') {
+        filtered = filtered.sort((a, b) => b.trustScore - a.trustScore);
+      } else if (sortBy === 'trust_asc') {
+        filtered = filtered.sort((a, b) => a.trustScore - b.trustScore);
+      }
+
+      setResults(filtered);
       setIsLoading(false);
-    }, 1500); // Fake delay for skeleton
+    }, 500); // Faster fake delay
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, sortBy]);
 
   const filterItems = [
     { label: 'Tất cả phòng', path: '/search' },
@@ -49,9 +61,9 @@ export function Search() {
       />
       
       <main className="apple-container px-4 sm:px-6 pt-6 md:pt-8 pb-24">
-        {/* Search Bar */}
-        <div className="mb-8 md:mb-10 w-full">
-          <div className="relative flex w-full max-w-[600px] items-center mx-auto">
+        {/* Search Bar & Sort */}
+        <div className="mb-8 md:mb-10 w-full flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex flex-1 w-full max-w-[600px] items-center">
             <label htmlFor="searchInput" className="sr-only">Tìm kiếm</label>
             <MagnifyingGlass className="absolute left-4 h-5 w-5 text-neutral-500" />
             <input 
@@ -75,6 +87,18 @@ export function Search() {
               <SlidersHorizontal className="h-5 w-5" />
             </button>
           </div>
+          
+          <select 
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className="h-[50px] md:h-[56px] w-full md:w-auto bg-white border border-gray-100 rounded-full md:rounded-lg px-4 outline-none focus:border-blue-500 shadow-sm text-[15px] font-medium"
+          >
+            <option value="newest">Mới nhất</option>
+            <option value="price_asc">Giá thấp đến cao</option>
+            <option value="price_desc">Giá cao đến thấp</option>
+            <option value="trust_desc">Trust Score cao nhất</option>
+            <option value="trust_asc">Trust Score thấp nhất</option>
+          </select>
         </div>
 
         {/* Loading State / Skeleton UI */}
@@ -122,18 +146,24 @@ export function Search() {
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-bold text-gray-900 shadow-sm">
                       {room.type}
                     </div>
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-bold text-white shadow-sm flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-yellow-400" weight="fill" />
-                      {(room.trustScore / 20).toFixed(1)}
-                    </div>
                   </div>
                   <div className="p-4 sm:p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3 className="font-bold text-gray-900 text-[15px] sm:text-base line-clamp-1">{room.title}</h3>
                     </div>
-                    <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm mb-4">
+                    <div className="flex items-center gap-1.5 text-gray-500 text-xs sm:text-sm mb-3">
                       <MapPin className="w-4 h-4 shrink-0" />
                       <span className="line-clamp-1">{room.address}</span>
+                    </div>
+
+                    <div className="flex flex-col gap-1 mb-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">Trust Score</span>
+                        <span className="text-xs font-bold text-blue-600">{room.trustScore}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400" style={{ width: `${room.trustScore}%` }}></div>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
                       <span className="font-black text-blue-600 text-lg sm:text-xl">{room.price.toLocaleString('vi-VN')}đ</span>
