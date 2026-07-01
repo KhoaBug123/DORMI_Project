@@ -5,7 +5,7 @@ import { BentoCard } from '../components/ui/BentoCard';
 import { AppleButton } from '../components/ui/AppleButton';
 import { MapPin, MagnifyingGlass, SlidersHorizontal, X, MagnifyingGlassMinus } from '@phosphor-icons/react';
 
-import { mockRooms, mockUniversities } from '../data/mockData';
+import { mockRooms } from '../data/mockData';
 
 export function Search() {
   const [searchQuery, setSearchQuery] = useState('');
