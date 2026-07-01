@@ -19,21 +19,31 @@ const createCustomIcon = (price: number, isSelected: boolean) => {
   });
 };
 
-const MapUpdater = ({ rooms, selectedRoomId }: { rooms: any[], selectedRoomId: string | null }) => {
+const createTargetIcon = (type: 'university' | 'district') => {
+  const colorClass = type === 'university' ? 'bg-purple-600 ring-purple-600/30' : 'bg-blue-600 ring-blue-600/30';
+  return L.divIcon({
+    className: 'custom-target-icon',
+    html: `<div class="${colorClass} w-5 h-5 rounded-full border-[3px] border-white shadow-lg ring-4"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+};
+
+const MapUpdater = ({ rooms, selectedRoomId, targetMarker }: { rooms: any[], selectedRoomId: string | null, targetMarker: any }) => {
   const map = useMap();
   useEffect(() => {
-    if (rooms.length > 0) {
-      if (selectedRoomId) {
-        const room = rooms.find(r => r.id === selectedRoomId);
-        if (room) {
-          map.flyTo([room.lat, room.lng], 15, { duration: 1.5 });
-        }
-      } else {
-        const bounds = L.latLngBounds(rooms.map(r => [r.lat, r.lng]));
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
+    if (selectedRoomId) {
+      const room = rooms.find(r => r.id === selectedRoomId);
+      if (room) {
+        map.flyTo([room.lat, room.lng], 16, { duration: 1.5 });
       }
+    } else if (targetMarker) {
+      map.flyTo([targetMarker.lat, targetMarker.lng], 14, { duration: 1.5 });
+    } else if (rooms.length > 0) {
+      const bounds = L.latLngBounds(rooms.map(r => [r.lat, r.lng]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
     }
-  }, [rooms, selectedRoomId, map]);
+  }, [rooms, selectedRoomId, targetMarker, map]);
   return null;
 };
 
@@ -80,6 +90,31 @@ const RoomImageSlider = ({ images, isVerified }: { images: string[], isVerified?
 };
 
 export default function ExploreRooms() {
+  const hcmcDistricts = [
+    { name: 'Quận 1', lat: 10.7769, lng: 106.7009 },
+    { name: 'Quận 3', lat: 10.7845, lng: 106.6874 },
+    { name: 'Quận 4', lat: 10.7582, lng: 106.7082 },
+    { name: 'Quận 5', lat: 10.7525, lng: 106.6661 },
+    { name: 'Quận 6', lat: 10.7483, lng: 106.6353 },
+    { name: 'Quận 7', lat: 10.7327, lng: 106.7297 },
+    { name: 'Quận 8', lat: 10.7229, lng: 106.6264 },
+    { name: 'Quận 10', lat: 10.7745, lng: 106.6675 },
+    { name: 'Quận 11', lat: 10.7628, lng: 106.6423 },
+    { name: 'Quận 12', lat: 10.8671, lng: 106.6413 },
+    { name: 'Bình Tân', lat: 10.7594, lng: 106.5925 },
+    { name: 'Bình Thạnh', lat: 10.8105, lng: 106.7091 },
+    { name: 'Gò Vấp', lat: 10.8285, lng: 106.6713 },
+    { name: 'Phú Nhuận', lat: 10.7997, lng: 106.6797 },
+    { name: 'Tân Bình', lat: 10.8015, lng: 106.6521 },
+    { name: 'Tân Phú', lat: 10.7876, lng: 106.6266 },
+    { name: 'Q.Thủ Đức', lat: 10.8523, lng: 106.7644 },
+    { name: 'Huyện Bình Chánh', lat: 10.6865, lng: 106.5935 },
+    { name: 'Huyện Cần Giờ', lat: 10.4116, lng: 106.8797 },
+    { name: 'Huyện Củ Chi', lat: 11.0028, lng: 106.5167 },
+    { name: 'Huyện Hóc Môn', lat: 10.8841, lng: 106.5912 },
+    { name: 'Huyện Nhà Bè', lat: 10.6695, lng: 106.7297 }
+  ];
+
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
   const { savedRooms, toggleSaveRoom } = useTenantStore();
@@ -115,6 +150,18 @@ export default function ExploreRooms() {
     return result;
   }, [district, university, sortBy]);
 
+  const targetMarker = useMemo(() => {
+    if (university) {
+      const uni = mockUniversities.find(u => u.id === university);
+      return uni ? { lat: uni.lat, lng: uni.lng, name: uni.name, type: 'university' as const } : null;
+    }
+    if (district) {
+      const dist = hcmcDistricts.find(d => d.name === district);
+      return dist ? { lat: dist.lat, lng: dist.lng, name: dist.name, type: 'district' as const } : null;
+    }
+    return null;
+  }, [university, district]);
+
   const mapRooms = selectedRoom ? filteredRooms.filter(r => r.id === selectedRoom) : filteredRooms;
 
   return (
@@ -132,11 +179,9 @@ export default function ExploreRooms() {
             className="bg-white border border-border rounded-lg px-3 py-1.5 text-sm outline-none focus:border-primary min-w-[120px]"
           >
             <option value="">Tất cả Quận/Huyện</option>
-            <option value="Quận 10">Quận 10</option>
-            <option value="Quận 5">Quận 5</option>
-            <option value="Quận 3">Quận 3</option>
-            <option value="Bình Thạnh">Bình Thạnh</option>
-            <option value="Gò Vấp">Gò Vấp</option>
+            {hcmcDistricts.map(d => (
+              <option key={d.name} value={d.name}>{d.name}</option>
+            ))}
           </select>
           
           <select 
@@ -173,8 +218,21 @@ export default function ExploreRooms() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           />
-          <MapUpdater rooms={mapRooms} selectedRoomId={selectedRoom} />
+          <MapUpdater rooms={mapRooms} selectedRoomId={selectedRoom} targetMarker={targetMarker} />
           
+          {targetMarker && (
+            <Marker 
+              position={[targetMarker.lat, targetMarker.lng]} 
+              icon={createTargetIcon(targetMarker.type)}
+            >
+              <Popup className="dormi-popup">
+                <div className="font-bold text-sm text-center px-2 py-1">
+                  Vị trí trung tâm: {targetMarker.name}
+                </div>
+              </Popup>
+            </Marker>
+          )}
+
           {mapRooms.map(room => (
             <Marker 
               key={room.id} 
