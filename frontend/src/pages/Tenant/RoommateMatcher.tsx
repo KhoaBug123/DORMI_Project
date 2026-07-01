@@ -43,16 +43,6 @@ export default function RoommateMatcher() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col">
         {/* Kết quả */}
         <div className="animate-fade-in-up">
-          <div className="bg-gradient-to-r from-primary to-indigo-700 rounded-3xl p-8 text-white mb-8 shadow-xl flex flex-col md:flex-row items-center justify-between">
-            <div>
-                <h2 className="text-3xl font-extrabold mb-2">Tuyệt vời! Chúng tôi đã tìm thấy 4 mảnh ghép.</h2>
-                <p className="text-white/80 text-lg">Dựa trên khảo sát, đây là những người có lối sống tương đồng với bạn nhất.</p>
-              </div>
-              <div className="mt-6 md:mt-0 bg-white/20 px-6 py-4 rounded-2xl backdrop-blur-md border border-white/20 text-center">
-                <p className="text-sm font-semibold text-white/80 uppercase tracking-widest mb-1">Độ chính xác AI</p>
-                <p className="text-4xl font-black text-white">92%</p>
-              </div>
-            </div>
 
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Cột trái: Thẻ người dùng hiện tại */}

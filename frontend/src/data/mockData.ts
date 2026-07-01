@@ -600,6 +600,19 @@ export const mockConversations = [
       { id: "msg-8", senderId: "tenant-002", content: "Em có thể đến xem vào chiều ngày 8/7 không?", sentAt: "2025-06-29T09:00:00" },
     ]
   },
+  {
+    id: "conv-003",
+    participants: [
+      { id: "tenant-001", name: "Nguyễn Minh Khoa", avatar: "https://i.pravatar.cc/40?img=52", role: "tenant" },
+      { id: "tenant-003", name: "Lê Hoàng Tuấn", avatar: "https://i.pravatar.cc/150?u=1", role: "tenant" },
+    ],
+    relatedRoom: { id: "match-1", title: "Ghép trọ khu vực Bách Khoa" },
+    lastMessage: { content: "Chào bạn, mình thấy bạn cũng đang tìm trọ quanh khu Bách Khoa, bạn dự định ở bao lâu?", sentAt: "2025-06-30T10:00:00", senderId: "tenant-003" },
+    unreadCount: 1,
+    messages: [
+      { id: "msg-9", senderId: "tenant-003", content: "Chào bạn, mình thấy bạn cũng đang tìm trọ quanh khu Bách Khoa, bạn dự định ở bao lâu?", sentAt: "2025-06-30T10:00:00" },
+    ]
+  },
 ];
 
 // ============ THỐNG KÊ DASHBOARD ============

@@ -5,10 +5,16 @@ import { useAuthStore } from '../../store/useAuthStore';
 
 export default function TenantChat() {
   const { user } = useAuthStore();
-  const [activeConvId, setActiveConvId] = useState(mockConversations[0]?.id);
+  const [activeTab, setActiveTab] = useState<'landlord' | 'roommate'>('landlord');
+  const [activeConvId, setActiveConvId] = useState<string | undefined>(undefined);
   const [msgInput, setMsgInput] = useState('');
 
-  const activeConv = mockConversations.find(c => c.id === activeConvId);
+  const filteredConversations = mockConversations.filter(c => {
+    const other = c.participants.find(p => p.id !== user?.id);
+    return other?.role === activeTab;
+  });
+
+  const activeConv = filteredConversations.find(c => c.id === activeConvId) || filteredConversations[0];
   const otherParticipant = activeConv?.participants.find(p => p.id !== user?.id);
 
   return (
@@ -17,6 +23,22 @@ export default function TenantChat() {
       <div className="w-full md:w-[320px] lg:w-[380px] border-r border-border bg-white flex flex-col flex-shrink-0">
         <div className="p-4 border-b border-border">
           <h2 className="text-xl font-bold text-text-primary mb-4">Tin nhắn</h2>
+          
+          <div className="flex bg-surface-2 p-1 rounded-xl mb-4">
+            <button 
+              onClick={() => { setActiveTab('landlord'); setActiveConvId(undefined); }}
+              className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-colors ${activeTab === 'landlord' ? 'bg-white text-primary shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+            >
+              Chủ trọ
+            </button>
+            <button 
+              onClick={() => { setActiveTab('roommate'); setActiveConvId(undefined); }}
+              className={`flex-1 py-1.5 text-sm font-bold rounded-lg transition-colors ${activeTab === 'roommate' ? 'bg-white text-primary shadow-sm' : 'text-text-muted hover:text-text-primary'}`}
+            >
+              Người ghép trọ
+            </button>
+          </div>
+
           <div className="relative">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input 
@@ -28,9 +50,9 @@ export default function TenantChat() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {mockConversations.map(conv => {
+          {filteredConversations.map(conv => {
             const other = conv.participants.find(p => p.id !== user?.id);
-            const isActive = conv.id === activeConvId;
+            const isActive = activeConv?.id === conv.id;
             return (
               <button
                 key={conv.id}
